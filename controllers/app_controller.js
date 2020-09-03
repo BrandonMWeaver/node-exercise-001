@@ -1,6 +1,7 @@
 const fs = require("fs");
+const qs = require("querystring");
 
-const items = [ "Item 1", "Item 2", "Item 3" ];
+const items = [];
 
 const appController = (req, res) => {
     if (req.url === '/') {
@@ -15,7 +16,7 @@ const appController = (req, res) => {
             if (error) throw error;
             res.write(html);
             res.end();
-        })
+        });
     }
     if (req.url === "/items") {
         fs.readFile("./views/items/index.html", (error, html) => {
@@ -27,7 +28,28 @@ const appController = (req, res) => {
             }
             res.write("</ul>");
             res.end();
-        })
+        });
+    }
+    if (req.url === "/items/new") {
+        if (req.method === "POST") {
+            let body = '';
+            req.on("data", chunk => {
+                body += chunk.toString();
+            });
+            req.on("end", () => {
+                const parsedBody = qs.parse(body);
+                items.push(parsedBody.item);
+            });
+            res.writeHead(301, { Location: "/items" });
+            res.end();
+        }
+        else {
+            fs.readFile("./views/items/new.html", (error, html) => {
+                if (error) throw error;
+                res.write(html);
+                res.end();
+            });
+        }
     }
 }
 
