@@ -1,7 +1,16 @@
 const fs = require("fs");
 const qs = require("querystring");
+const sqlite3 = require("sqlite3");
 
 const items = [];
+const db = new sqlite3.Database("./db/development.db");
+db.all("SELECT * FROM items", (error, rows) => {
+    if (error) throw error;
+    for (const row of rows) {
+        items.push(row.value);
+    }
+});
+db.close();
 
 const appController = (req, res) => {
     if (req.url === '/') {
@@ -38,7 +47,12 @@ const appController = (req, res) => {
             });
             req.on("end", () => {
                 const parsedBody = qs.parse(body);
-                items.push(parsedBody.item);
+                items.push(parsedBody.value);
+                const db = new sqlite3.Database("./db/development.db");
+                const insert = db.prepare("INSERT INTO items VALUES(?)");
+                insert.run(parsedBody.value);
+                insert.finalize();
+                db.close();
             });
             res.writeHead(301, { Location: "/items" });
             res.end();
