@@ -8,6 +8,13 @@ const appController = (req, res) => {
             res.end();
         });
     }
+    if (req.url === "/about") {
+        fs.readFile("./views/about.html", (error, html) => {
+            if (error) throw error;
+            res.write(html);
+            res.end();
+        })
+    }
 }
 
 module.exports = appController;
